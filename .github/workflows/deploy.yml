@@ -1,0 +1,68 @@
+name: Deploy Application CD
+
+on:
+  workflow_run:
+    workflows: ["Spring_APP CI"]
+    types:
+      - completed
+  workflow_dispatch:  # Allows manual execution
+
+################# CD Part #################
+jobs:
+  CD-Deploy:
+    if: >-
+      (github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch') 
+      && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Install AWS CLI
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y awscli
+
+    - name: Collect EC2 IPs
+      run: |
+          INSTANCE_IDS=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=Docker-EC2" "Name=instance-state-name,Values=running" --query "Reservations[*].Instances[*].InstanceId" --output text)
+          echo "[webservers]" > ansible/inventory.ini
+          for INSTANCE_ID in $INSTANCE_IDS; do
+            IP=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID --query "Reservations[*].Instances[*].PublicIpAddress" --output text)
+            echo "$IP ansible_user=ec2-user ansible_ssh_private_key_file=~/.ssh/id_rsa" >> ansible/inventory.ini
+          done
+          cat ansible/inventory.ini
+
+    - name: Add SSH key to the agent
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Inject Secrets into docker-compose.yml
+      run: |
+        sed -i "s/\(SPRING_DATASOURCE_URL=\)\(.*\)/\1${{ secrets.RDS_ENDPOINT }}/" docker-compose.yml
+        sed -i "s/\(SPRING_DATASOURCE_USERNAME=\)\(.*\)/\1${{ secrets.DB_USERNAME }}/" docker-compose.yml
+        sed -i "s/\(SPRING_DATASOURCE_PASSWORD=\)\(.*\)/\1${{ secrets.DB_PASSWORD }}/" docker-compose.yml
+
+    - name: Install Ansible
+      run: |
+        python -m pip install --upgrade pip
+        pip install ansible
+
+    - name: Run Ansible Playbook
+      run: cat ansible/inventory.ini && ansible-playbook -i ansible/inventory.ini ansible/playbook.yml
+      env:
+        ANSIBLE_HOST_KEY_CHECKING: 'False'

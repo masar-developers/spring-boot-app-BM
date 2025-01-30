@@ -1,0 +1,34 @@
+version: '3.8'
+services:
+  app:
+    image: mohassan844/spring-app:latest # Replace with your built image name
+    build:
+      context: . # Or folder where Dockerfile is
+      dockerfile: Dockerfile # Or Dockerfile name
+    ports:
+      - "80:80"
+    depends_on:
+      - db
+    environment:
+      - SPRING_DATASOURCE_URL=db_endpoint # Change if DB Name is different
+      # - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/your_db?createDatabaseIfNotExist=true # for test locally
+      - SPRING_DATASOURCE_USERNAME=your_user # Change the user to your needs
+      - SPRING_DATASOURCE_PASSWORD=your_password #Change the password to your needs
+      - PORT=80 #If the application port differs
+
+############# For Test App Locally ####################
+
+#   db:
+#     image: mysql:8.0
+#     environment:
+#       MYSQL_ROOT_PASSWORD: root_password # Change this to your root password
+#       MYSQL_DATABASE: your_db # Change it if different
+#       MYSQL_USER: your_user  # Change this
+#       MYSQL_PASSWORD: your_password # Change this
+#     ports:
+#       - "3306:3306"
+#     volumes:
+#       - mysql_data:/var/lib/mysql
+
+# volumes:
+#   mysql_data:
