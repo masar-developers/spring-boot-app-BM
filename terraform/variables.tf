@@ -54,10 +54,10 @@ variable "s3_bucket" {
   type        = string
 }
 
-variable "private_key_path" {
-  description = "Path to the private key file"
-  type        = string
-}
+# variable "private_key_path" {
+#   description = "Path to the private key file"
+#   type        = string
+# }
 variable "db_username" {
   description = "db_username"
   type        = string
