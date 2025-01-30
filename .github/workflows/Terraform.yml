@@ -17,6 +17,7 @@ jobs:
         terraform_version: 1.5.7  # Use your preferred version
 
     - name: Inject Secrets into Terraform Variables
+      working-directory: ./terraform
       run: |
         sed -i "s/^db_username.*/db_username      = \"${{ secrets.TF_DB_USERNAME }}\"/" terraform.tfvars
         sed -i "s/^db_password.*/db_password      = \"${{ secrets.TF_DB_PASSWORD }}\"/" terraform.tfvars
@@ -42,6 +43,7 @@ jobs:
 
     - name: Get RDS Endpoint and Load Balancer DNS
       id: outputs
+      working-directory: ./terraform
       run: |
         RDS_ENDPOINT=$(terraform output -raw rds_endpoint)
         LB_DNS=$(terraform output -raw load_balancer_dns)
