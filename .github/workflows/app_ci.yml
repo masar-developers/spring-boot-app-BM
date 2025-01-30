@@ -1,4 +1,4 @@
-name: Spring_APP CI/CD
+name: Spring_APP CI
 on:
   push:
     branches:
@@ -18,6 +18,6 @@ jobs:
       with:
         push: true
         tags: |
-          mohassan844/spring_app:latest
-          mohassan844/spring_app:${{ github.run_number }}
+          mohassan844/spring-app:latest
+          mohassan844/spring-app:${{ github.run_number }}
         file: Dockerfile
