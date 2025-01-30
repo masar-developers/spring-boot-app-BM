@@ -4,7 +4,7 @@ provider "aws" {
 
 terraform {
   backend "s3" {
-    bucket = "spring-app-terraform-backend" # Replace with your S3 bucket name
+    bucket =  var.s3_bucket  # Replace with your S3 bucket name
     key    = "terraform/state"           # Path to the state file inside the bucket
     region = "us-east-1"                 # Hardcode the region value
   }
@@ -104,7 +104,7 @@ resource "aws_key_pair" "main" {
 
 # Launch Template
 resource "aws_launch_template" "main" {
-  name_prefix   = "spring-app-launch-template-"
+  name_prefix   = "spring-app-launch-templates"
   image_id      = "ami-0bb84b8ffd87024d8"
   instance_type = "t2.micro"
   key_name      = aws_key_pair.main.key_name
@@ -213,7 +213,7 @@ resource "aws_db_instance" "main" {
   engine               = "mysql"
   engine_version       = "8.0" #change as needed
   instance_class       = "db.t3.micro"
-  db_name              = "spring-app-db"
+  db_name              = var.db_name
   username             = var.db_username
   password             = var.db_password
   db_subnet_group_name = aws_db_subnet_group.main.name

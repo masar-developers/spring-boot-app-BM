@@ -66,3 +66,9 @@ variable "db_password" {
   description = "db_password"
   type        = string
 }
+
+variable "db_name" {
+  description = "spring-app-db"
+  type        = string
+  default     = "spring-app-db"
+}
