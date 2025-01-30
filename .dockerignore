@@ -1,0 +1,29 @@
+# Node.js
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Git and version control
+.git
+.github
+.gitignore
+
+# Build output
+dist
+build
+tmp
+
+# Editors
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+####
+private_key
+public_key.pem
+terraform
+ansible
