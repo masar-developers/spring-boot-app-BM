@@ -4,7 +4,8 @@ provider "aws" {
 
 terraform {
   backend "s3" {
-    bucket =  var.s3_bucket  # Replace with your S3 bucket name
+    bucket =  "spring-app-terraform-backend-http"  # Replace with your S3 bucket name
+    # bucket =  var.s3_bucket  # Replace with your S3 bucket name
     key    = "terraform/state"           # Path to the state file inside the bucket
     region = "us-east-1"                 # Hardcode the region value
   }
