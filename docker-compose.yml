@@ -6,14 +6,14 @@ services:
       context: . # Or folder where Dockerfile is
       dockerfile: Dockerfile # Or Dockerfile name
     ports:
-      - "8080:8080"
+      - "80:80"
     depends_on:
       - db
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/your_db?createDatabaseIfNotExist=true # Change if DB Name is different
       - SPRING_DATASOURCE_USERNAME=your_user # Change the user to your needs
       - SPRING_DATASOURCE_PASSWORD=your_password #Change the password to your needs
-      - PORT=8080 #If the application port differs
+      - PORT=80 #If the application port differs
 
   db:
     image: mysql:8.0
