@@ -43,10 +43,15 @@ variable "vpc_name" {
   default     = "main-vpc"
 }
 
-variable "subnet_name" {
-  description = "Name of the subnet"
+variable "app_subnet_name" {
+  description = "Name of the app subnet"
   type        = string
-  default     = "main-subnet"
+  default     = "app_subnet"
+}
+variable "db_subnet_name" {
+  description = "Name of the db subnet"
+  type        = string
+  default     = "db_subnet"
 }
 
 variable "s3_bucket" {
