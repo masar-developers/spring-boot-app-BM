@@ -58,10 +58,13 @@ jobs:
 
     - name: Inject Secrets into docker-compose.yml
       run: |
+        # Construct the JDBC URL
+        JDBC_URL="jdbc:mysql://${{ secrets.RDS_ENDPOINT }}:3306/${{ secrets.DB_NAME }}?createDatabaseIfNotExist=true"
+
         sed -i "s/\(SPRING_DATASOURCE_URL=\)\(.*\)/\1${{ secrets.RDS_ENDPOINT }}/" docker-compose.yml
         sed -i "s/\(SPRING_DATASOURCE_USERNAME=\)\(.*\)/\1${{ secrets.DB_USERNAME }}/" docker-compose.yml
         sed -i "s/\(SPRING_DATASOURCE_PASSWORD=\)\(.*\)/\1${{ secrets.DB_PASSWORD }}/" docker-compose.yml
-
+        cat docker-compose.yml
     - name: Install Ansible          # python -m pip install --upgrade pip
       run: |
         pip install ansible

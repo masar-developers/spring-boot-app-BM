@@ -7,8 +7,8 @@ services:
       dockerfile: Dockerfile # Or Dockerfile name
     ports:
       - "80:80"
-    depends_on:
-      - db
+    # depends_on:
+    #   - db
     environment:
       - SPRING_DATASOURCE_URL=db_endpoint # Change if DB Name is different
       # - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/your_db?createDatabaseIfNotExist=true # for test locally
