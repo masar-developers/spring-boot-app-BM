@@ -4,10 +4,9 @@ provider "aws" {
 
 terraform {
   backend "s3" {
-    bucket =  "spring-app-terraform-backend-http"  # Replace with your S3 bucket name
-    # bucket =  var.s3_bucket  # Replace with your S3 bucket name
-    key    = "terraform/state"           # Path to the state file inside the bucket
-    region = "us-east-1"                 # Hardcode the region value
+    bucket =  "spring-app-terraform-backend-http"
+    key    = "terraform/state"
+    region = "us-east-1"
   }
 }
 
@@ -19,31 +18,51 @@ resource "aws_vpc" "main" {
   }
 }
 
-# Application Subnet
-resource "aws_subnet" "app_subnet" {
+#  First Application Subnet
+resource "aws_subnet" "app_subnet_1" {
   vpc_id                   = aws_vpc.main.id
-  cidr_block               = var.app_subnet_cidr
-  availability_zone        = var.availability_zone
+  cidr_block               = cidrsubnet(var.vpc_cidr, 8, 0) # first /24 subnet
+  availability_zone        = element(data.aws_availability_zones.available.names, 0) # Get first AZ
   map_public_ip_on_launch  = true
 
   tags = {
-    Name = var.app_subnet_name
+    Name = "${var.app_subnet_name}-1"
   }
 }
 
+# Second Application Subnet
+resource "aws_subnet" "app_subnet_2" {
+    vpc_id                   = aws_vpc.main.id
+    cidr_block               = cidrsubnet(var.vpc_cidr, 8, 1) # second /24 subnet
+    availability_zone        = element(data.aws_availability_zones.available.names, 1) # Get second AZ
+    map_public_ip_on_launch  = true
+    tags = {
+        Name = "${var.app_subnet_name}-2"
+    }
+}
 
-# DB Private Subnet
-resource "aws_subnet" "db_subnet" {
+# First DB Private Subnet
+resource "aws_subnet" "db_subnet_1" {
   vpc_id            = aws_vpc.main.id
-  cidr_block        = var.db_subnet_cidr
-  availability_zone = var.availability_zone
+  cidr_block        = cidrsubnet(var.vpc_cidr, 8, 2) # third /24 subnet
+  availability_zone = element(data.aws_availability_zones.available.names, 0)
 
 
   tags = {
-    Name = "db-subnet"
+        Name = "${var.db_subnet_name}-1"
   }
 }
+# Second DB Private Subnet
+resource "aws_subnet" "db_subnet_2" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = cidrsubnet(var.vpc_cidr, 8, 3) # forth /24 subnet
+  availability_zone = element(data.aws_availability_zones.available.names, 1)
 
+
+  tags = {
+        Name = "${var.db_subnet_name}-2"
+  }
+}
 
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
@@ -59,10 +78,17 @@ resource "aws_route_table" "main" {
 }
 
 
-resource "aws_route_table_association" "app_subnet_assoc" {
-  subnet_id      = aws_subnet.app_subnet.id
+resource "aws_route_table_association" "app_subnet_assoc_1" {
+  subnet_id      = aws_subnet.app_subnet_1.id
   route_table_id = aws_route_table.main.id
 }
+
+resource "aws_route_table_association" "app_subnet_assoc_2" {
+  subnet_id      = aws_subnet.app_subnet_2.id
+  route_table_id = aws_route_table.main.id
+}
+
+
 
 resource "aws_security_group" "main" {
   vpc_id = aws_vpc.main.id
@@ -128,7 +154,7 @@ resource "aws_autoscaling_group" "main" {
   launch_template {
     id = aws_launch_template.main.id
   }
-  vpc_zone_identifier   = [aws_subnet.app_subnet.id]
+  vpc_zone_identifier   = [aws_subnet.app_subnet_1.id, aws_subnet.app_subnet_2.id] # Use both subnets for ASG
   min_size              = 1
   max_size              = 3
   desired_capacity      = 1
@@ -147,7 +173,7 @@ resource "aws_lb" "main" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.main.id]
-  subnets            = [aws_subnet.app_subnet.id]
+  subnets            = [aws_subnet.app_subnet_1.id, aws_subnet.app_subnet_2.id] # Use both subnets for ALB
 }
 
 # Target Group
@@ -182,10 +208,11 @@ resource "aws_autoscaling_attachment" "asg_attachment" {
   lb_target_group_arn    = aws_lb_target_group.main.arn
 }
 
+
 # RDS Subnet Group
 resource "aws_db_subnet_group" "main" {
   name       = "spring-app-rds-subnet-group"
-  subnet_ids = [aws_subnet.db_subnet.id]
+  subnet_ids = [aws_subnet.db_subnet_1.id, aws_subnet.db_subnet_2.id] # Use both db subnets
 }
 
 # RDS Security Group
@@ -230,4 +257,9 @@ output "load_balancer_dns" {
 
 output "rds_endpoint" {
   value = aws_db_instance.main.endpoint
+}
+
+# Data source to get available AZs
+data "aws_availability_zones" "available" {
+  state = "available"
 }

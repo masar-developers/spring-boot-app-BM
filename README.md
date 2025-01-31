@@ -16,9 +16,11 @@
 7- Add ansible files to configure EC2s to can run the app 
 
 8- Add GitHub Workflows to run all past steps:
-    - Terraform.yml >> to create infra at AWS and store RDS endpoint to Github secrets and store LB DNS to Github variables 
-    - app_ci.yml >> to build app docker image and push it 
-    - deploy.yml >> to deploy the last docker image to all EC2 
+    - Terraform.yml (manuall) >> to create infra at AWS and store RDS endpoint to Github secrets and store LB DNS to Github variables 
+    - app_ci.yml (automatic on push to main)>> to build app docker image and push it 
+    - deploy.yml (automatic on push to main and CI succeeded )>> to deploy the last docker image to all EC2 
+    
+    
 
 
 
