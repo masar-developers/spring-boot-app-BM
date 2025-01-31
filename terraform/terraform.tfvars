@@ -11,4 +11,4 @@ db_subnet_name      = "db-subnet"
 s3_bucket        = "spring-app-terraform-backend-http" # Replace with your S3 bucket name
 db_username      =""
 db_password      =""
-db_name          ="spring-app-db"
+db_name          ="springAppDb"
